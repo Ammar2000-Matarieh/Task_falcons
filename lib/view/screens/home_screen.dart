@@ -10,7 +10,7 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final providerData = context.read<InventoryProvider>();
+    final providerData = context.read<ApiController>();
     if (providerData.items == null) {
       providerData.fetchAndMergeData();
     }

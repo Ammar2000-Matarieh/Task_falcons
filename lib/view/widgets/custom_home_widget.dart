@@ -8,10 +8,10 @@ class CustomHomeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<InventoryProvider>(
-      builder: (context, inventoryProvider, child) {
+    return Consumer<ApiController>(
+      builder: (context, apiController, child) {
         return FutureBuilder<List<MergedData>>(
-          future: inventoryProvider.fetchAndMergeData(),
+          future: apiController.fetchAndMergeData(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(

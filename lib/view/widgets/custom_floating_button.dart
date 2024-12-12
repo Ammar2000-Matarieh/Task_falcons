@@ -8,7 +8,7 @@ class CustomFloatingButton extends StatelessWidget {
     required this.providerData,
   });
 
-  final InventoryProvider providerData;
+  final ApiController providerData;
 
   @override
   Widget build(BuildContext context) {

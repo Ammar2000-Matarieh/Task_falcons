@@ -6,7 +6,7 @@ import 'package:task_falcons/models/items/items_model.dart';
 import 'package:task_falcons/models/merged_data.dart';
 import 'package:task_falcons/models/quantity/quantity_model.dart';
 
-class InventoryProvider extends ChangeNotifier {
+class ApiController extends ChangeNotifier {
   final ApiService apiService = ApiService();
 
   final searchController = TextEditingController();
@@ -38,10 +38,12 @@ class InventoryProvider extends ChangeNotifier {
 
       final itemsModel = ItemsModel.fromJson(itemsResponse);
       final quantityModel = QuantityModel.fromJson(quantityResponse);
+      notifyListeners();
 
       if (itemsModel.itemsMaster == null ||
           quantityModel.salesManItemsBalance == null) {
         log("Error: Missing data in parsed models.");
+        notifyListeners();
         throw Exception("Failed to parse models.");
       }
 
@@ -57,34 +59,45 @@ class InventoryProvider extends ChangeNotifier {
           }
         }
       }
+      notifyListeners();
 
       return mergedItems;
     } catch (e) {
       log("Error fetching or merging data: $e");
+      notifyListeners();
       return [];
     }
   }
 
   /// Fetch Items Data
   Future<Map<String, dynamic>?> getDataItems(
-      int cono, int strno, int caseItems) async {
+    int cono,
+    int strno,
+    int caseItems,
+  ) async {
     try {
-      var response = await apiService.getRequest(itemsApi, queryParams: {
-        "cono": cono.toString(),
-        "strno": strno.toString(),
-        "caseItems": caseItems.toString(),
-      });
+      var response = await apiService.getRequest(
+        itemsApi,
+        queryParams: {
+          "cono": cono.toString(),
+          "strno": strno.toString(),
+          "caseItems": caseItems.toString(),
+        },
+      );
 
       // Check if response is not null
       if (response != null) {
         log("Items Response Body: ${response.toString()}");
+        notifyListeners();
         return response; // Assuming this is already the parsed JSON.
       } else {
         log("Error fetching items. Response is null.");
+        notifyListeners();
         return null;
       }
     } catch (e) {
       log("Exception in getDataItems: $e");
+      notifyListeners();
       return null;
     }
   }
@@ -96,22 +109,28 @@ class InventoryProvider extends ChangeNotifier {
     int caseItems,
   ) async {
     try {
-      var response = await apiService.getRequest(quantityApi, queryParams: {
-        "cono": cono.toString(),
-        "strno": strno.toString(),
-        "caseItems": caseItems.toString(),
-      });
+      var response = await apiService.getRequest(
+        quantityApi,
+        queryParams: {
+          "cono": cono.toString(),
+          "strno": strno.toString(),
+          "caseItems": caseItems.toString(),
+        },
+      );
 
       // Check if response is not null
       if (response != null) {
         log("Quantity Response Body: ${response.toString()}");
+        notifyListeners();
         return response; // Assuming this is already the parsed JSON.
       } else {
         log("Error fetching quantity. Response is null.");
+        notifyListeners();
         return null;
       }
     } catch (e) {
       log("Exception in getDataQuantity: $e");
+      notifyListeners();
       return null;
     }
   }
