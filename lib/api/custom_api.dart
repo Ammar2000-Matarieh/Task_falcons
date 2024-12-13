@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:http/http.dart' as http;
 
 class ApiService {
+  // Get Request Data API :
   getRequest(
     String url, {
     Map<String, String>? queryParams,
@@ -26,25 +27,36 @@ class ApiService {
     }
   }
 
-  Map<String, dynamic> _handleResponse(http.Response response) {
+  Map<String, dynamic> _handleResponse(
+    http.Response response,
+  ) {
     log("Response Status Code: ${response.statusCode}");
 
-    // Parse response body
     dynamic body;
     try {
-      body = jsonDecode(response.body);
+      body = jsonDecode(
+        response.body,
+      );
     } catch (e) {
-      log("Error parsing response body: $e");
-      return {'status': 'error', 'message': 'Failed to parse response body'};
+      log(
+        "Error parsing response body: $e",
+      );
+      return {
+        'status': 'error',
+        'message': 'Failed to parse response body',
+      };
     }
 
-    // Check for success and handle known response formats
     switch (response.statusCode) {
       case 200:
       case 201:
         if (body is Map<String, dynamic>) {
-          if (body.containsKey('SalesMan_Items_Balance') ||
-              body.containsKey('Items_Master')) {
+          if (body.containsKey(
+                'SalesMan_Items_Balance',
+              ) ||
+              body.containsKey(
+                'Items_Master',
+              )) {
             return {
               'status': 'success',
               'SalesMan_Items_Balance': body['SalesMan_Items_Balance'] ?? [],
@@ -104,33 +116,3 @@ class ApiService {
     }
   }
 }
-
-// Map<String, dynamic> _handleResponse(http.Response response) {
-  //   log("Response Status Code: ${response.statusCode}");
-  //   switch (response.statusCode) {
-  //     case 200:
-  //     case 201:
-  //       var body = jsonDecode(response.body);
-  //       if (body is Map<String, dynamic>) {
-  //         if (body.containsKey('SalesMan_Items_Balance') ||
-  //             body.containsKey('Items_Master')) {
-  //           return {
-  //             'status': 'success',
-  //             'SalesMan_Items_Balance': body['SalesMan_Items_Balance'] ?? [],
-  //             'Items_Master': body['Items_Master'] ?? [],
-  //           };
-  //         }
-  //       }
-  //       return {'status': 'error', 'message': 'Unexpected response format.'};
-  //     default:
-  //       return {
-  //         'status': 'error',
-  //         'message': 'Unexpected status code: ${response.statusCode}'
-  //       };
-  //   }
-  // }
-
- // return {
-          //   'status': 'success',
-          //   'data': body,
-          // };
