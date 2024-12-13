@@ -19,42 +19,49 @@ class CustomHomeWidget extends StatelessWidget {
               );
             } else if (snapshot.hasError) {
               return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (snapshot.hasData) {
-              var mergedData = snapshot.data!;
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const BouncingScrollPhysics(),
-                itemCount: mergedData.length,
-                itemBuilder: (context, index) {
-                  var data = mergedData[index];
-                  return Container(
-                    margin: const EdgeInsets.all(4),
-                    child: Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(
-                          8,
+            } else if (snapshot.hasData &&
+                apiController.filteredItems.isNotEmpty) {
+              return RefreshIndicator(
+                onRefresh: apiController.refreshData,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: apiController.filteredItems.length,
+                  itemBuilder: (context, index) {
+                    var data = apiController.filteredItems[index];
+                    return Container(
+                      margin: const EdgeInsets.all(8),
+                      child: Card(
+                        elevation: 4,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                data.item.nAME ?? 'Unknown Item',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 6,
+                              ),
+                              Text(
+                                'Quantity: ${data.quantity}',
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 4,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(data.item.nAME ?? 'Unknown Item'),
-                            const SizedBox(
-                              height: 4,
-                            ),
-                            Text('Quantity: ${data.quantity}'),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               );
             } else {
               return const Center(

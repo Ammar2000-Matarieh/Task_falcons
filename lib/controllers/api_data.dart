@@ -9,43 +9,38 @@ import 'package:task_falcons/models/quantity/quantity_model.dart';
 class ApiController extends ChangeNotifier {
   final ApiService apiService = ApiService();
 
-  final searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
+  String searchQuery = '';
+  bool isAscending = true;
 
   List<MergedData> mergedItems = [];
+  List<MergedData> filteredItems = [];
 
-  Future<List<MergedData>>? items;
+  Future<List<MergedData>>? _fetchedData;
 
+  /// Fetch and Merge Data from APIs
   Future<List<MergedData>> fetchAndMergeData() async {
+    if (_fetchedData != null) {
+      return _fetchedData!;
+    }
+
     try {
-      final itemsResponse = await getDataItems(
-        290,
-        4,
-        1,
-      );
-      final quantityResponse = await getDataQuantity(
-        290,
-        4,
-        9,
-      );
+      final itemsResponse = await getDataItems(290, 4, 1);
+      final quantityResponse = await getDataQuantity(290, 4, 9);
 
       if (itemsResponse == null || quantityResponse == null) {
-        log("Error: Failed to fetch valid data.");
         throw Exception("Failed to fetch valid data.");
       }
 
-      log("Items Response: ${itemsResponse.toString()}");
-      log("Quantity Response: ${quantityResponse.toString()}");
-
       final itemsModel = ItemsModel.fromJson(itemsResponse);
       final quantityModel = QuantityModel.fromJson(quantityResponse);
-      notifyListeners();
 
       if (itemsModel.itemsMaster == null ||
           quantityModel.salesManItemsBalance == null) {
-        log("Error: Missing data in parsed models.");
-        notifyListeners();
         throw Exception("Failed to parse models.");
       }
+
+      mergedItems.clear();
 
       for (var item in itemsModel.itemsMaster!) {
         for (var qty in quantityModel.salesManItemsBalance!) {
@@ -59,22 +54,27 @@ class ApiController extends ChangeNotifier {
           }
         }
       }
+
+      filteredItems = List.from(
+        mergedItems,
+      );
+      _fetchedData = Future.value(
+        mergedItems,
+      );
       notifyListeners();
 
       return mergedItems;
     } catch (e) {
-      log("Error fetching or merging data: $e");
-      notifyListeners();
-      return [];
+      log(
+        "Error fetching or merging data: $e",
+      );
+      rethrow;
     }
   }
 
   /// Fetch Items Data
   Future<Map<String, dynamic>?> getDataItems(
-    int cono,
-    int strno,
-    int caseItems,
-  ) async {
+      int cono, int strno, int caseItems) async {
     try {
       var response = await apiService.getRequest(
         itemsApi,
@@ -84,30 +84,16 @@ class ApiController extends ChangeNotifier {
           "caseItems": caseItems.toString(),
         },
       );
-
-      // Check if response is not null
-      if (response != null) {
-        log("Items Response Body: ${response.toString()}");
-        notifyListeners();
-        return response; // Assuming this is already the parsed JSON.
-      } else {
-        log("Error fetching items. Response is null.");
-        notifyListeners();
-        return null;
-      }
+      return response;
     } catch (e) {
       log("Exception in getDataItems: $e");
-      notifyListeners();
       return null;
     }
   }
 
   /// Fetch Quantity Data
   Future<Map<String, dynamic>?> getDataQuantity(
-    int cono,
-    int strno,
-    int caseItems,
-  ) async {
+      int cono, int strno, int caseItems) async {
     try {
       var response = await apiService.getRequest(
         quantityApi,
@@ -117,27 +103,50 @@ class ApiController extends ChangeNotifier {
           "caseItems": caseItems.toString(),
         },
       );
-
-      // Check if response is not null
-      if (response != null) {
-        log("Quantity Response Body: ${response.toString()}");
-        notifyListeners();
-        return response; // Assuming this is already the parsed JSON.
-      } else {
-        log("Error fetching quantity. Response is null.");
-        notifyListeners();
-        return null;
-      }
+      return response;
     } catch (e) {
       log("Exception in getDataQuantity: $e");
-      notifyListeners();
       return null;
     }
   }
 
-  // Refresh DataBase :
-  void refreshData() {
-    items = fetchAndMergeData();
+  /// Refresh Data
+  Future<void> refreshData() async {
+    _fetchedData = null;
+    await fetchAndMergeData();
+    notifyListeners();
+  }
+
+  /// Search Items Functions :
+  void searchItems(
+    String query,
+  ) {
+    searchQuery = query.toLowerCase();
+    filteredItems = mergedItems.where((
+      item,
+    ) {
+      return item.item.nAME!.toLowerCase().contains(
+                searchQuery,
+              ) ||
+          item.item.iTEMNO!.toLowerCase().contains(
+                searchQuery,
+              );
+    }).toList();
+    notifyListeners();
+  }
+
+  /// Sort Items Functions :
+  void sortItems() {
+    isAscending = !isAscending;
+    filteredItems.sort(
+      (a, b) => isAscending
+          ? a.quantity!.compareTo(
+              b.quantity!,
+            )
+          : b.quantity!.compareTo(
+              a.quantity!,
+            ),
+    );
     notifyListeners();
   }
 }

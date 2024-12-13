@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:task_falcons/controllers/api_data.dart';
-import 'package:task_falcons/view/widgets/custom_floating_button.dart';
 import 'package:task_falcons/view/widgets/custom_home_widget.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -11,9 +10,9 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final providerData = context.read<ApiController>();
-    if (providerData.items == null) {
-      providerData.fetchAndMergeData();
-    }
+    // if (providerData.items == null) {
+    //   providerData.fetchAndMergeData();
+    // }
 
     return Scaffold(
       appBar: AppBar(
@@ -24,9 +23,14 @@ class HomeScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-      ),
-      floatingActionButton: CustomFloatingButton(
-        providerData: providerData,
+        actions: [
+          IconButton(
+            icon: Icon(providerData.isAscending
+                ? Icons.arrow_downward
+                : Icons.arrow_upward),
+            onPressed: () => providerData.sortItems(),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -34,6 +38,7 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             children: [
               TextFormField(
+                onChanged: (value) => providerData.searchItems(value),
                 controller: providerData.searchController,
                 decoration: InputDecoration(
                   prefixIcon: const Icon(
