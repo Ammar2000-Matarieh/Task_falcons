@@ -7,9 +7,9 @@ import 'package:task_falcons/models/merged_data.dart';
 import 'package:task_falcons/models/quantity/quantity_model.dart';
 
 class ApiController extends ChangeNotifier {
-  final ApiService apiService = ApiService();
+  final apiService = ApiService();
 
-  final TextEditingController searchController = TextEditingController();
+  final searchController = TextEditingController();
   String searchQuery = '';
   bool isAscending = true;
 
@@ -25,19 +25,35 @@ class ApiController extends ChangeNotifier {
     }
 
     try {
-      final itemsResponse = await getDataItems(290, 4, 1);
-      final quantityResponse = await getDataQuantity(290, 4, 9);
+      final itemsResponse = await getDataItems(
+        290,
+        4,
+        1,
+      );
+      final quantityResponse = await getDataQuantity(
+        290,
+        4,
+        9,
+      );
 
       if (itemsResponse == null || quantityResponse == null) {
-        throw Exception("Failed to fetch valid data.");
+        throw Exception(
+          "Failed to fetch valid data.",
+        );
       }
 
-      final itemsModel = ItemsModel.fromJson(itemsResponse);
-      final quantityModel = QuantityModel.fromJson(quantityResponse);
+      final itemsModel = ItemsModel.fromJson(
+        itemsResponse,
+      );
+      final quantityModel = QuantityModel.fromJson(
+        quantityResponse,
+      );
 
       if (itemsModel.itemsMaster == null ||
           quantityModel.salesManItemsBalance == null) {
-        throw Exception("Failed to parse models.");
+        throw Exception(
+          "Failed to parse models.",
+        );
       }
 
       mergedItems.clear();
@@ -74,7 +90,10 @@ class ApiController extends ChangeNotifier {
 
   /// Fetch Items Data
   Future<Map<String, dynamic>?> getDataItems(
-      int cono, int strno, int caseItems) async {
+    int cono,
+    int strno,
+    int caseItems,
+  ) async {
     try {
       var response = await apiService.getRequest(
         itemsApi,
@@ -86,14 +105,19 @@ class ApiController extends ChangeNotifier {
       );
       return response;
     } catch (e) {
-      log("Exception in getDataItems: $e");
+      log(
+        "Exception in getDataItems: $e",
+      );
       return null;
     }
   }
 
   /// Fetch Quantity Data
   Future<Map<String, dynamic>?> getDataQuantity(
-      int cono, int strno, int caseItems) async {
+    int cono,
+    int strno,
+    int caseItems,
+  ) async {
     try {
       var response = await apiService.getRequest(
         quantityApi,
@@ -105,7 +129,9 @@ class ApiController extends ChangeNotifier {
       );
       return response;
     } catch (e) {
-      log("Exception in getDataQuantity: $e");
+      log(
+        "Exception in getDataQuantity: $e",
+      );
       return null;
     }
   }
