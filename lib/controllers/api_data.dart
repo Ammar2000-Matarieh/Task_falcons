@@ -8,7 +8,6 @@ import 'package:task_falcons/models/quantity/quantity_model.dart';
 
 class ApiController extends ChangeNotifier {
   final apiService = ApiService();
-
   final searchController = TextEditingController();
   String searchQuery = '';
   bool isLoading = false;
@@ -25,7 +24,6 @@ class ApiController extends ChangeNotifier {
     if (_fetchedData != null) {
       return _fetchedData!;
     }
-
     isLoading = true;
     hasError = false;
 
@@ -43,7 +41,6 @@ class ApiController extends ChangeNotifier {
         ),
       ]);
 
-      // Extract responses
       final itemsResponse = results[0];
       final quantityResponse = results[1];
 
@@ -51,16 +48,18 @@ class ApiController extends ChangeNotifier {
         throw Exception("Failed to fetch valid data.");
       }
 
-      // Parse responses into models
-      final itemsModel = ItemsModel.fromJson(itemsResponse);
-      final quantityModel = QuantityModel.fromJson(quantityResponse);
+      final itemsModel = ItemsModel.fromJson(
+        itemsResponse,
+      );
+      final quantityModel = QuantityModel.fromJson(
+        quantityResponse,
+      );
 
       if (itemsModel.itemsMaster == null ||
           quantityModel.salesManItemsBalance == null) {
         throw Exception("Failed to parse models.");
       }
 
-      // Merge data
       mergedItems.clear();
       for (var item in itemsModel.itemsMaster!) {
         for (var qty in quantityModel.salesManItemsBalance!) {
@@ -74,8 +73,8 @@ class ApiController extends ChangeNotifier {
           }
         }
       }
+      notifyListeners();
 
-      // Update filtered items
       filteredItems = List.from(
         mergedItems,
       );
@@ -83,9 +82,8 @@ class ApiController extends ChangeNotifier {
         mergedItems,
       );
 
-      isLoading = false; // Set loading to false once data is fetched
+      isLoading = false;
       notifyListeners();
-
       return mergedItems;
     } catch (e) {
       isLoading = false;
@@ -96,7 +94,23 @@ class ApiController extends ChangeNotifier {
     }
   }
 
-  /// Fetch Items Data
+  Future<void> refreshData() async {
+    _fetchedData = null;
+    filteredItems.clear();
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      await fetchAndMergeData();
+      notifyListeners();
+    } catch (e) {
+      hasError = true;
+      errorMessage = 'Failed to refresh data: $e';
+      notifyListeners();
+    }
+  }
+
+  // Fetch Items Data :
   Future<Map<String, dynamic>?> getDataItems(
       int cono, int strno, int caseItems) async {
     try {
@@ -115,9 +129,12 @@ class ApiController extends ChangeNotifier {
     }
   }
 
-  /// Fetch Quantity Data
+  // Fetch Quantity Data :
   Future<Map<String, dynamic>?> getDataQuantity(
-      int cono, int strno, int caseItems) async {
+    int cono,
+    int strno,
+    int caseItems,
+  ) async {
     try {
       var response = await apiService.getRequest(
         quantityApi,
@@ -134,22 +151,18 @@ class ApiController extends ChangeNotifier {
     }
   }
 
-  /// Refresh Data
-  Future<void> refreshData() async {
-    _fetchedData = null; // Clear the cached data
-    filteredItems.clear(); // Clear the filtered items
-    notifyListeners(); // Notify listeners to trigger a UI rebuild
-
-    // Now fetch and merge data again
-    await fetchAndMergeData();
-  }
-
   /// Search Items Function
-  void searchItems(String query) {
+  void searchItems(
+    String query,
+  ) {
     searchQuery = query.toLowerCase();
     filteredItems = mergedItems.where((item) {
-      return item.item.nAME!.toLowerCase().contains(searchQuery) ||
-          item.item.iTEMNO!.toLowerCase().contains(searchQuery);
+      return item.item.nAME!.toLowerCase().contains(
+                searchQuery,
+              ) ||
+          item.item.iTEMNO!.toLowerCase().contains(
+                searchQuery,
+              );
     }).toList();
     notifyListeners();
   }
@@ -159,26 +172,27 @@ class ApiController extends ChangeNotifier {
     isAscending = !isAscending;
     filteredItems.sort(
       (a, b) => isAscending
-          ? a.quantity!.compareTo(b.quantity!)
-          : b.quantity!.compareTo(a.quantity!),
+          ? a.quantity!.compareTo(
+              b.quantity!,
+            )
+          : b.quantity!.compareTo(
+              a.quantity!,
+            ),
     );
     notifyListeners();
   }
 
-  Color getColorForItem(int quantity) {
+  Color getColorForItem(
+    int quantity,
+  ) {
     if (quantity < 5) {
-      // If quantity is less than 5, highlight in red for low value
       return Colors.red;
     } else if (quantity > 100) {
-      // If quantity is greater than 100, highlight in green
       return Colors.green;
     } else if (quantity > 50) {
-      // If quantity is between 50 and 100, highlight in orange
       return Colors.orange;
     } else {
-      // For quantities between 5 and 50, highlight in a neutral color (optional)
       return Colors.blueGrey;
     }
   }
-  // ... your existing code
 }

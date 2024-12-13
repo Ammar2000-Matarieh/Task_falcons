@@ -7,7 +7,9 @@ class ItemsModel {
     this.itemsMaster,
   });
 
-  ItemsModel.fromJson(Map<String, dynamic> json) {
+  ItemsModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
     if (json['Items_Master'] != null) {
       itemsMaster = <ItemsMaster>[];
       json['Items_Master'].forEach(

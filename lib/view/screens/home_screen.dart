@@ -10,9 +10,11 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final providerData = context.read<ApiController>();
-    // if (providerData.items == null) {
-    //   providerData.fetchAndMergeData();
-    // }
+
+    // Fetch data when the screen loads if not already done
+    if (providerData.filteredItems.isEmpty && !providerData.isLoading) {
+      providerData.fetchAndMergeData();
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -30,6 +32,13 @@ class HomeScreen extends StatelessWidget {
                 : Icons.arrow_upward),
             onPressed: () => providerData.sortItems(),
           ),
+          // Refresh Button
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () async {
+              await providerData.refreshData(); // Refresh data
+            },
+          ),
         ],
       ),
       body: SingleChildScrollView(
@@ -41,22 +50,19 @@ class HomeScreen extends StatelessWidget {
                 onChanged: (value) => providerData.searchItems(value),
                 controller: providerData.searchController,
                 decoration: InputDecoration(
-                  prefixIcon: const Icon(
-                    CupertinoIcons.search,
-                  ),
+                  prefixIcon: const Icon(CupertinoIcons.search),
                   hintText: "Search Products",
                   labelText: "Search Products",
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(
-                      10,
-                    ),
+                    borderRadius: BorderRadius.circular(10),
                   ),
                 ),
               ),
-              const SizedBox(
-                height: 18,
+              const SizedBox(height: 18),
+              RefreshIndicator(
+                onRefresh: providerData.refreshData,
+                child: const CustomHomeWidget(),
               ),
-              const CustomHomeWidget(),
             ],
           ),
         ),
