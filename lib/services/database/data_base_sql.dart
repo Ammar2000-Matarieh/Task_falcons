@@ -2,7 +2,7 @@ import 'package:sqflite/sqflite.dart';
 import 'package:task_falcons/models/items/items_master.dart';
 import 'package:task_falcons/models/merged_data.dart';
 
-class DatabaseHelper {
+class DatabaseSQl {
   static Database? _database;
 
   Future<Database> get database async {
